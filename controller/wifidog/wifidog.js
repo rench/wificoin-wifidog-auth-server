@@ -116,18 +116,18 @@ class Wifidog {
             var wfcAuthUrl = this.generateWfcAuthUrl(orderNumber, channelPath.wificoin.toAddress, wfcAmount);
             var wxAuthUrl = this.generateWxAuthUrl();
             var timestamp = Math.round(+new Date());
-            var tmp = channelPath.weixin.wxAppId + orderNumber + timestamp +
-                channelPath.weixin.wxShopId + wxAuthUrl + staMac + ssid + staMac + channelPath.weixin.wxSecretKey;
+            var tmp = channelPath.weixin.appId + orderNumber + timestamp +
+                channelPath.weixin.shopId + wxAuthUrl + staMac + ssid + staMac + channelPath.weixin.secretKey;
             var wxSign = this.generateMD5(tmp);
             res.render('login', {
                 wfcAuth: wfcAuthUrl,
                 gwAddress: gwAddress,
                 gwPort: gwPort,
-                appId: channelPath.weixin.wxAppId,
+                appId: channelPath.weixin.appId,
                 extend: orderNumber,
                 timestamp: timestamp,
                 sign: wxSign,
-                shopId: channelPath.weixin.wxShopId,
+                shopId: channelPath.weixin.shopId,
                 authUrl: wxAuthUrl,
                 mac: staMac,
                 ssid: ssid,
@@ -161,23 +161,25 @@ class Wifidog {
      * @param {*} next 
      */
     async auth(req, res, next) {
-        var stage = req.query.stage;
+	var stage = req.query.stage;
 
-        console.log('auth stage is ' + stage);
-        if (stage == 'login') {
-            var token = req.query.token;
-            const tokenObj = await TokenModel.findOne({ token });
-            if (!tokenObj) { res.send('Auth: 0'); } else {
-                res.send('Auth: 1');
-            }
-        } else if (stage == 'counters') {
-            var result = client.updateDeviceClientFromCounter(req.query);
-            res.send('Auth: ' + result);
-        } else if (stage == 'logout') {
-            res.send('Auth: 1')
-        } else {
-            res.send("illegal stage");
-        }
+	console.log('auth stage is ' + stage);
+	if (stage == 'login') {
+		var token = req.query.token;
+		const tokenObj = await TokenModel.findOne({ token });
+		if (!tokenObj) { 
+			res.send('Auth: 0'); 
+		} else {
+			res.send('Auth: 1');
+		}
+	} else if (stage == 'counters') {
+		var result = await client.updateDeviceClientFromCounter(req.query);
+		res.send('Auth: ' + result);
+	} else if (stage == 'logout') {
+		res.send('Auth: 1')
+	} else {
+		res.send("illegal stage");
+	}
     }
     /**
      * express middleware to check weixin auth 
@@ -187,9 +189,9 @@ class Wifidog {
      */
     async checkAuthWeixinParam(req, res, next) {
         var extend = req.query.extend;
-        var openId = req.query.openid;
+        var openId = req.query.openId;
         var tid = req.query.tid;
-        var sign = req.query.sing;
+        var sign = req.query.sign;
         var timestamp = req.query.timestamp;
 
         if (typeof (extend) === 'undefined' || typeof (openId) === 'undefined' ||
@@ -352,7 +354,7 @@ class Wifidog {
      * generate weixin auth url
      */
     generateWxAuthUrl() {
-        var wxAuthUrl = config.authDomain + ':' + config.port + config.wxAuth;
+        var wxAuthUrl = config.authDomain + ':' + config.port + config.wxAuthPath;
         return wxAuthUrl;
     }
     /**
